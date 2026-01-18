@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MareSounds.UI", "MareSounds.UI\MareSounds.UI.csproj", "{7227895D-F3BB-463C-9E91-74918E033465}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MareSounds.UI", "MareSounds\MareSounds.UI.csproj", "{7227895D-F3BB-463C-9E91-74918E033465}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MareSounds.Infrastructure", "MareSounds.Infrastructure\MareSounds.Infrastructure.csproj", "{4AC5A28C-50D7-485C-92E2-4F86A9910B5D}"
 EndProject

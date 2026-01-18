@@ -1,4 +1,10 @@
-﻿namespace MareSounds.Core.Interfaces.Repos
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MareSounds.Core.Interfaces.Repos
 {
     public interface IDBRepo<T>
     {

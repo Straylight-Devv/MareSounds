@@ -123,7 +123,7 @@
         {
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B57C2AE98166465AAF26DB1619B4AD7E"
             {
-            "SourcePath" = "8:..\\MareSounds.UI\\maresounds.ico"
+            "SourcePath" = "8:..\\MareSounds\\maresounds.ico"
             "TargetName" = "8:maresounds.ico"
             "Tag" = "8:"
             "Folder" = "8:_212885413A344FE389027AB90265170A"

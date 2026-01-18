@@ -1,4 +1,10 @@
-﻿using System.ComponentModel;
+﻿using SQLitePCL;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MareSounds.Core.Models
 {

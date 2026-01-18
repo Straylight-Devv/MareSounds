@@ -1,6 +1,11 @@
 ﻿using MareSounds.Core.Interfaces.Repos;
 using MareSounds.Core.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MareSounds.Infrastructure.Repos
 {
