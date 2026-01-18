@@ -1,0 +1,174 @@
+name: Build & Release MSI (main push, vdproj)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+
+    env:
+      SOLUTION: MareSounds.sln
+      CONFIGURATION: Release
+      PLATFORM: x64
+
+      # Your known MSI output path (relative to repo root)
+      MSI_PATH: MareSounds/MareSounds.Setup/Release/MareSounds.Setup.msi
+
+      # Version sources (edit if your paths differ)
+      UI_CSPROJ: MareSounds/MareSounds.UI/MareSounds.UI.csproj
+      UI_ASSEMBLYINFO: MareSounds/MareSounds.UI/Properties/AssemblyInfo.cs
+      SETUP_VDPROJ: MareSounds/MareSounds.Setup/MareSounds.Setup.vdproj
+
+      # VS Installer Projects extension for VS2022 (required for .vdproj builds)
+      INSTALLER_PROJECTS_VSIX_URL: https://marketplace.visualstudio.com/_apis/public/gallery/publishers/VisualStudioClient/vsextensions/MicrosoftVisualStudio2022InstallerProjects/2.0.1/vspackage
+
+    steps:
+      - name: Checkout (full history for tagging)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Locate Visual Studio (vswhere)
+        id: vs
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (!(Test-Path $vswhere)) { throw "vswhere not found at $vswhere" }
+
+          $installPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          if ([string]::IsNullOrWhiteSpace($installPath)) { throw "Visual Studio installation not found." }
+
+          $devenv = Join-Path $installPath "Common7\IDE\devenv.com"
+          $vsixInstaller = Join-Path $installPath "Common7\IDE\VSIXInstaller.exe"
+
+          if (!(Test-Path $devenv)) { throw "devenv.com not found at $devenv" }
+          if (!(Test-Path $vsixInstaller)) { throw "VSIXInstaller.exe not found at $vsixInstaller" }
+
+          "devenv=$devenv" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "vsixInstaller=$vsixInstaller" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Download VS Installer Projects extension (VS2022)
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "InstallerProjects2022.vsix"
+          Invoke-WebRequest -Uri $env:INSTALLER_PROJECTS_VSIX_URL -OutFile $out
+          if (!(Test-Path $out)) { throw "VSIX download failed." }
+          "VSIX_PATH=$out" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Install VS Installer Projects extension (silent)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "${{ steps.vs.outputs.vsixInstaller }}" -ArgumentList "/quiet","/admin",$env:VSIX_PATH -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "VSIXInstaller failed with exit code $($p.ExitCode)" }
+
+      - name: Determine version (UI csproj -> AssemblyInfo -> vdproj fallback)
+        id: ver
+        shell: pwsh
+        run: |
+          function Get-VersionFromCsproj($path) {
+            if (!(Test-Path $path)) { return $null }
+            [xml]$x = Get-Content $path -Raw
+            # Prefer <Version>, then <AssemblyVersion>, then <FileVersion>
+            $nodes = @(
+              $x.Project.PropertyGroup.Version,
+              $x.Project.PropertyGroup.AssemblyVersion,
+              $x.Project.PropertyGroup.FileVersion
+            ) | Where-Object { $_ -and $_.Trim() -ne "" }
+            if ($nodes.Count -gt 0) { return $nodes[0].Trim() }
+            return $null
+          }
+
+          function Get-VersionFromAssemblyInfo($path) {
+            if (!(Test-Path $path)) { return $null }
+            $t = Get-Content $path -Raw
+            # Match: [assembly: AssemblyVersion("1.2.3.4")] or AssemblyFileVersion(...)
+            $m = [regex]::Match($t, 'AssemblyVersion\("([^"]+)"\)')
+            if ($m.Success) { return $m.Groups[1].Value }
+            $m = [regex]::Match($t, 'AssemblyFileVersion\("([^"]+)"\)')
+            if ($m.Success) { return $m.Groups[1].Value }
+            return $null
+          }
+
+          function Get-VersionFromVdproj($path) {
+            if (!(Test-Path $path)) { return $null }
+            $t = Get-Content $path -Raw
+            # Typical line: "ProductVersion" = "8:1.2.3"
+            $m = [regex]::Match($t, '"ProductVersion"\s*=\s*"\d+:([0-9]+\.[0-9]+\.[0-9]+(?:\.[0-9]+)?)"')
+            if ($m.Success) { return $m.Groups[1].Value }
+            return $null
+          }
+
+          $v = Get-VersionFromCsproj $env:UI_CSPROJ
+          if (-not $v) { $v = Get-VersionFromAssemblyInfo $env:UI_ASSEMBLYINFO }
+          if (-not $v) { $v = Get-VersionFromVdproj $env:SETUP_VDPROJ }
+          if (-not $v) { $v = "0.0.0" }
+
+          # Normalize: keep first 3 parts for tag base (1.2.3), but preserve full in release name
+          $parts = $v.Split('.')
+          $base = if ($parts.Length -ge 3) { "$($parts[0]).$($parts[1]).$($parts[2])" } elseif ($parts.Length -eq 2) { "$($parts[0]).$($parts[1]).0" } else { "$v.0.0" }
+
+          $run = "${{ github.run_number }}"
+          $sha = "${{ github.sha }}".Substring(0,7)
+
+          $tag = "v$base-build.$run"
+          $name = "v$base (main build $run, $sha)"
+          "version_full=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version_base=$base" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "release_name=$name" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Restore (NuGet)
+        shell: pwsh
+        run: dotnet restore $env:SOLUTION
+
+      - name: Rebuild solution (Release | x64) via devenv (builds .vdproj too)
+        shell: pwsh
+        run: |
+          $cfg = "$env:CONFIGURATION|$env:PLATFORM"
+          & "${{ steps.vs.outputs.devenv }}" $env:SOLUTION /Rebuild $cfg /Out build.log
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "---- build.log (tail) ----"
+            Get-Content -Path build.log -Tail 200
+            exit $LASTEXITCODE
+          }
+
+      - name: Verify MSI exists
+        shell: pwsh
+        run: |
+          if (!(Test-Path $env:MSI_PATH)) {
+            Write-Host "Expected MSI not found at: $env:MSI_PATH"
+            Write-Host "Listing folder:"
+            Get-ChildItem -Force -Recurse (Split-Path $env:MSI_PATH) | Select-Object FullName, Length, LastWriteTime
+            throw "MSI not produced at expected path."
+          }
+
+      - name: Create and push tag for this build
+        shell: pwsh
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          $tag = "${{ steps.ver.outputs.tag }}"
+          git tag $tag
+          git push origin $tag
+
+      - name: Publish GitHub Release + upload MSI asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.release_name }}
+          generate_release_notes: true
+          prerelease: true
+          files: ${{ env.MSI_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
