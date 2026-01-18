@@ -1,0 +1,140 @@
+﻿<UserControl x:Class="MareSounds.UI.Views.MareListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MareSounds.UI.Views"
+             xmlns:models="clr-namespace:MareSounds.UI.Models"
+             xmlns:vm="clr-namespace:MareSounds.UI.ViewModels"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="720" d:DesignWidth="1280"
+             DataContext="{models:DISource Type=vm:MareListViewModel}">
+    <UserControl.Resources>
+        <BitmapImage x:Key="BlankImg" UriSource="pack://application:,,,/Resources/blank.jpg" />
+        <Style x:Key="FocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
+        <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
+        <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
+        <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+        <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
+        <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true" CornerRadius="5">
+                            <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid x:Name="MainGrid" d:Background="White" Width="Auto" Height="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="13*"/>
+            <ColumnDefinition Width="7*"/>
+        </Grid.ColumnDefinitions>
+        <ListView Grid.Column="0" x:Name="MaresList" ItemsSource="{Binding MareList}" SelectedItem="{Binding SelectedMare}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Margin="10,10,10,50">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Image Source="{Binding Picture, FallbackValue={StaticResource BlankImg}, TargetNullValue={StaticResource BlankImg}}" Width="100" Height="100" Margin="5">
+                        <Image.ContextMenu>
+                            <ContextMenu DataContext="{Binding DataContext, Source={x:Reference MaresList}}">
+                                <MenuItem Header="Delete" Command="{Binding DeleteMareCommand}" CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                            </ContextMenu>
+                        </Image.ContextMenu>
+                    </Image>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button Grid.Column="0" Style="{DynamicResource RoundedButton}" Width="100" Height="30" Content="Add Maer" Command="{Binding AddMareButtonClick}" Margin="10,0,0,10" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Image Grid.Row="0" Source="{Binding SelectedMare.Picture, FallbackValue={StaticResource BlankImg}, TargetNullValue={StaticResource BlankImg}, NotifyOnSourceUpdated=True}" d:Source="{StaticResource BlankImg}" MinWidth="100" MinHeight="100" MaxWidth="200" MaxHeight="200" HorizontalAlignment="Left" Margin="10">
+                <Image.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Update Image" Command="{Binding UpdateMarePictureCommand}"/>
+                    </ContextMenu>
+                </Image.ContextMenu>
+            </Image>
+            <TextBox Grid.Row="1" Margin="10" VerticalAlignment="Top" Height="30" Text="{Binding SelectedMare.Name}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="Bold">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="LostFocus">
+                        <b:InvokeCommandAction Command="{Binding UpdateMareNameCommand}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox}}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </TextBox>
+            <ListView Grid.Row="2" ItemsSource="{Binding VoiceClips}" MinHeight="230" Margin="10,10,10,10" x:Name="VoiceClipsList">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Add Sound" Command="{Binding AddSoundCommand}" CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextAlignment="Justify" HorizontalAlignment="Stretch">
+                            <TextBlock.ContextMenu>
+                                <ContextMenu DataContext="{Binding DataContext, Source={x:Reference VoiceClipsList}}">
+                                    <MenuItem Header="Delete" Command="{Binding DeleteSoundCommand}" CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                </ContextMenu>
+                            </TextBlock.ContextMenu>
+                        </TextBlock>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Button Grid.Row="3" Content="Play Maer Sound" Style="{DynamicResource RoundedButton}" Height="40" Margin="10" Command="{Binding PlayMareSoundCommand}"/>
+        </Grid>
+        <StackPanel Grid.Column="1" Margin="10,10,10,10" VerticalAlignment="Stretch">
+            
+        </StackPanel>
+    </Grid>
+</UserControl>
