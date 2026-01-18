@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_B8C0980D5BF74B5583C86E6644E36959"
+        "MsmKey" = "8:_B57C2AE98166465AAF26DB1619B4AD7E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -121,9 +121,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B8C0980D5BF74B5583C86E6644E36959"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B57C2AE98166465AAF26DB1619B4AD7E"
             {
-            "SourcePath" = "8:\\\\host.lan\\Data\\maresounds.ico"
+            "SourcePath" = "8:..\\MareSounds\\maresounds.ico"
             "TargetName" = "8:maresounds.ico"
             "Tag" = "8:"
             "Folder" = "8:_212885413A344FE389027AB90265170A"
@@ -329,7 +329,7 @@
             "Target" = "8:_D2BB13AEE8404BF0B9C2F0B0422DF2B4"
             "Folder" = "8:_7D3731FA63224228BEF8070203F8AC51"
             "WorkingFolder" = "8:_212885413A344FE389027AB90265170A"
-            "Icon" = "8:_B8C0980D5BF74B5583C86E6644E36959"
+            "Icon" = "8:_B57C2AE98166465AAF26DB1619B4AD7E"
             "Feature" = "8:"
             }
         }
