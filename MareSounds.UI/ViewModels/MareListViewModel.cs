@@ -14,7 +14,6 @@ namespace MareSounds.UI.ViewModels
     public class MareListViewModel : INotifyPropertyChanged
     {
         private ObservableCollection<Mare> _buttonData = new ObservableCollection<Mare>();
-        private string _test = "Test String Label Data";
         private ICommand _addMareButtonClickCommand;
         private ICommand _playMareSoundCommand;
         private ICommand _deleteSoundCommand;
